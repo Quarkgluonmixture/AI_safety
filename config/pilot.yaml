@@ -1,0 +1,18 @@
+models_config: config/models.yaml
+n_paraphrases: 3
+conditions: []
+sample_per_cell:
+
+data:
+  pilot_path: data/pilot/pilot_v1.jsonl
+  metadata_paths:
+    targets: data/targets/targets.yaml
+    lenses: data/targets/lenses.yaml
+    voices: data/targets/voices.yaml
+    frames: data/targets/frames.yaml
+
+paraphrase:
+  model_key: openai_default
+  max_tokens: 2048
+  temperature: 0.4
+

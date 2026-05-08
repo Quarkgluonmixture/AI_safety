@@ -1,0 +1,45 @@
+models:
+  openai_default:
+    provider: openai
+    endpoint:
+    model: REPLACE_WITH_OPENAI_MODEL
+    token_budget: 1024
+    temperature: 0.2
+    min_interval_seconds: 0.0
+    capture_reasoning_trace: false
+    enabled: true
+    role: generation
+
+  anthropic_default:
+    provider: anthropic
+    endpoint:
+    model: REPLACE_WITH_ANTHROPIC_MODEL
+    token_budget: 1024
+    temperature: 0.2
+    min_interval_seconds: 0.0
+    capture_reasoning_trace: false
+    enabled: true
+    role: generation
+
+  google_default:
+    provider: google
+    endpoint:
+    model: REPLACE_WITH_GOOGLE_MODEL
+    token_budget: 1024
+    temperature: 0.2
+    min_interval_seconds: 0.0
+    capture_reasoning_trace: false
+    enabled: true
+    role: generation
+
+  deepseek_default:
+    provider: deepseek
+    endpoint: https://api.deepseek.com
+    model: REPLACE_WITH_DEEPSEEK_MODEL
+    token_budget: 1024
+    temperature: 0.2
+    min_interval_seconds: 0.0
+    capture_reasoning_trace: false
+    enabled: true
+    role: generation
+

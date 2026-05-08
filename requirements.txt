@@ -1,0 +1,7 @@
+pydantic
+openai
+anthropic
+google-generativeai
+httpx
+pyyaml
+tenacity
