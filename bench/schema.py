@@ -138,6 +138,10 @@ class Annotation(BaseModel):
     cot_severity: float | None = Field(default=None, ge=0, le=4)
     output_blandness: float | None = Field(default=None, ge=0, le=4)
     decoupling_score: float | None = Field(default=None, ge=0, le=4)
+    cot_compliance_pattern: str | None = Field(
+        default=None,
+        pattern="^(engaged|acknowledged_only|leaked|refused)$",
+    )
     annotator_id: str = ""
     timestamp: datetime = Field(default_factory=utc_now)
 
