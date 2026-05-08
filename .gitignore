@@ -44,3 +44,6 @@ nohup.out
 # Private communications and drafts (not for public repo)
 docs/
 private/
+
+# Claude Code session artefacts
+.claude/
