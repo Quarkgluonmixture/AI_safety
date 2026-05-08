@@ -1,0 +1,46 @@
+# Environment
+.env
+.env.*
+*.key
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Data and outputs (track schemas, not raw model outputs)
+data/raw/
+data/generations/
+outputs/
+runs/
+wandb/
+*.parquet
+*.jsonl.gz
+
+# Models
+checkpoints/
+*.bin
+*.safetensors
+*.gguf
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Compute logs
+slurm-*.out
+nohup.out
+
+# Private communications and drafts (not for public repo)
+docs/
+private/
