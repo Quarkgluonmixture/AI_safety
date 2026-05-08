@@ -56,7 +56,7 @@ class Prompt(BaseModel):
     slot_F: str
     base_text: str
     paraphrase_idx: int = Field(ge=0)
-    condition: str = Field(default="D", pattern="^(D|LC)$")
+    condition: str = Field(default="D", pattern="^(D|LC|CD)$")
     prompt_hash: str = Field(min_length=64, max_length=64)
 
     @field_validator("slot_T", "slot_L", "slot_V", "slot_F", "base_text")
@@ -134,6 +134,10 @@ class Annotation(BaseModel):
     mr_level: int | None = Field(default=None, ge=0, le=5)
     mr_timing: str | None = None
     mr_correction: str | None = None
+    mr_x_flag: bool | None = None
+    cot_severity: float | None = Field(default=None, ge=0, le=4)
+    output_blandness: float | None = Field(default=None, ge=0, le=4)
+    decoupling_score: float | None = Field(default=None, ge=0, le=4)
     annotator_id: str = ""
     timestamp: datetime = Field(default_factory=utc_now)
 

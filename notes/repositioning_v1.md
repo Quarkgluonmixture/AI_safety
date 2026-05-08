@@ -115,12 +115,13 @@ The contribution is the **construct**, the **schema**, the **rubric** (MR-0..MR-
 
 ## Summary of changes vs proposal v1
 
-| Section | v1 | v2 (this doc) |
+| Section | v1 | v2 / v2.1 / v2.2 |
 |---|---|---|
-| §1 motivation | "RSP exposes superficial alignment" — generic | "transparent role separation" — specific differentiator from concealment-based work |
-| §2.2 LVD definition | prose + examples | 4-slot schema $(T, L, V, F)$ + dual operationalisation of $\mathrm{LVD}\_\mathrm{score}$ |
-| §6.8 Mismatch Recognition | binary / ordinal, "most important signal" | six-level rubric MR-0..MR-5 with behavioural markers and timing |
-| §15 Related Work | one paragraph | nine-row differentiation table + "transparent vs hidden" unifier |
+| §1 motivation | "RSP exposes superficial alignment" — generic | "transparent role separation" — specific differentiator from concealment-based work; v2.1 adds one-line thesis ("integrate what is already visible") |
+| §2.2 LVD definition | prose + examples | 4-slot schema $(T, L, V, F)$ + dual operationalisation of $\mathrm{LVD}\_\mathrm{score}$ (v2); externalised prompt form (v2.1); 3-condition matrix D/LC/CD with 2×2 profile (v2.2) |
+| §6.8 Mismatch Recognition | binary / ordinal, "most important signal" | six-level rubric MR-0..MR-5 with behavioural markers and timing (v2.1); MR-X covert-evasion flag for unrequested CoT/output divergence (v2.2) |
+| §15 Related Work | one paragraph | nine-row differentiation table + "transparent vs hidden" unifier (v2); 2×2 model profile is a novel contribution that distinguishes from SHADE-Arena even more cleanly (v2.2) |
+| §6 Metrics | DSR / RSR / CBR / RSP Lift | + LVD failure rate (v2.1, primary); + spontaneity gap $\Delta_\mathrm{spont}$ (v2.1); + decoupling capability rate (v2.2); + MR-X rate (v2.2) |
 
 Open issues to resolve before v2 finalisation:
 
