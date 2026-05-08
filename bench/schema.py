@@ -29,8 +29,9 @@ def compute_prompt_hash(
     slot_F: str,
     base_text: str,
     paraphrase_idx: int,
+    condition: str = "D",
 ) -> str:
-    """Compute the canonical prompt hash."""
+    """Compute the canonical prompt hash including condition code (D / LC)."""
     return sha256_json(
         {
             "slot_T": slot_T,
@@ -39,6 +40,7 @@ def compute_prompt_hash(
             "slot_F": slot_F,
             "base_text": base_text,
             "paraphrase_idx": paraphrase_idx,
+            "condition": condition,
         }
     )
 
@@ -54,6 +56,7 @@ class Prompt(BaseModel):
     slot_F: str
     base_text: str
     paraphrase_idx: int = Field(ge=0)
+    condition: str = Field(default="D", pattern="^(D|LC)$")
     prompt_hash: str = Field(min_length=64, max_length=64)
 
     @field_validator("slot_T", "slot_L", "slot_V", "slot_F", "base_text")
@@ -83,8 +86,9 @@ class Prompt(BaseModel):
         slot_F: str,
         base_text: str,
         paraphrase_idx: int,
+        condition: str = "D",
     ) -> "Prompt":
-        """Build a prompt and derive its canonical hash."""
+        """Build a prompt and derive its canonical hash. Condition is D or LC."""
         prompt_hash = compute_prompt_hash(
             slot_T=slot_T,
             slot_L=slot_L,
@@ -92,6 +96,7 @@ class Prompt(BaseModel):
             slot_F=slot_F,
             base_text=base_text,
             paraphrase_idx=paraphrase_idx,
+            condition=condition,
         )
         return cls(
             slot_T=slot_T,
@@ -100,6 +105,7 @@ class Prompt(BaseModel):
             slot_F=slot_F,
             base_text=base_text,
             paraphrase_idx=paraphrase_idx,
+            condition=condition,
             prompt_hash=prompt_hash,
         )
 

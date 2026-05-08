@@ -71,7 +71,11 @@ class JSONLStore:
         """Validate minimum JSONL store invariants."""
         if "prompt_hash" not in record:
             raise ValueError("JSONL records must include prompt_hash")
+        prompt_hash = record["prompt_hash"]
+        if not isinstance(prompt_hash, str) or len(prompt_hash) != 64:
+            raise ValueError("prompt_hash must be a sha256 hex string")
+        if any(char not in "0123456789abcdef" for char in prompt_hash):
+            raise ValueError("prompt_hash must be a sha256 hex string")
         missing = [field for field in self.key_fields if field not in record]
         if missing:
             raise ValueError(f"record missing key fields: {', '.join(missing)}")
-
