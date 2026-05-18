@@ -27,17 +27,19 @@ def main() -> None:
     model_configs = load_yaml(model_config_path).get("models", {})
     selected_models = select_models(model_configs, parse_csv(args.models))
     requested_conditions = parse_csv(args.conditions) or pilot_config.get("conditions") or []
-    prompts = load_prompts_from_config(pilot_config, requested_conditions, allow_missing=args.dry_run)
+    prompts = load_prompts_from_config(pilot_config, requested_conditions, allow_missing=args.dry_run, override_pilot_path=args.prompts)
     n_paraphrases = int(pilot_config.get("n_paraphrases", 3))
+    n_samples = int(pilot_config.get("n_samples_per_prompt", 1))
 
     if args.dry_run:
-        print_dry_run(prompts, selected_models, pilot_config, n_paraphrases)
+        print_dry_run(prompts, selected_models, pilot_config, n_paraphrases, n_samples)
         return
 
     run_id = args.run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     ensure_outputs_untracked(Path("outputs"))
     run_dir = Path("outputs") / "runs" / run_id
-    generation_store = JSONLStore(run_dir / "store.jsonl", key_fields=("prompt_hash", "model", "paraphrase_idx"))
+    generation_store = JSONLStore(run_dir / "store.jsonl", key_fields=("prompt_hash", "model", "paraphrase_idx", "sample_idx"))
+    prompt_store = JSONLStore(run_dir / "prompts.jsonl", key_fields=("prompt_hash",))
     annotation_store = JSONLStore(
         run_dir / "annotation_templates.jsonl",
         key_fields=("prompt_hash", "generation_id"),
@@ -47,39 +49,86 @@ def main() -> None:
 
     written = 0
     skipped = 0
+    failed = 0
+    total_input_tokens = 0
+    total_output_tokens = 0
+
     for prompt in prompts:
+        # Persist prompt for downstream annotation lookup
+        prompt_store.append(prompt.model_dump(mode="json"))
         variants = materialize_variants(prompt, paraphrase_client, pilot_config, n_paraphrases)
         for variant in variants:
             for model_key, model_cfg in selected_models.items():
                 model_name = str(model_cfg["model"])
-                pending = {"prompt_hash": variant.prompt_hash, "model": model_name, "paraphrase_idx": variant.paraphrase_idx}
-                if generation_store.has(pending):
-                    skipped += 1
-                    continue
-                from bench.api_clients import build_client
+                for sample_idx in range(n_samples):
+                    pending = {"prompt_hash": variant.prompt_hash, "model": model_name, "paraphrase_idx": variant.paraphrase_idx, "sample_idx": sample_idx}
+                    if generation_store.has(pending):
+                        skipped += 1
+                        continue
+                    from bench.api_clients import build_client
 
-                client = clients.setdefault(model_key, build_client(str(model_cfg["provider"]), model_cfg))
-                result = client.generate(
-                    variant.base_text,
-                    max_tokens=int(model_cfg.get("token_budget", 1024)),
-                    temperature=float(model_cfg.get("temperature", 0.2)),
-                    capture_reasoning_trace=bool(model_cfg.get("capture_reasoning_trace", False)),
-                )
-                generation = Generation(
-                    prompt_hash=variant.prompt_hash,
-                    model=model_name,
-                    response=result.text,
-                    reasoning_trace=result.reasoning_trace,
-                    run_id=run_id,
-                )
-                record = generation.model_dump(mode="json")
-                record["generation_id"] = generation_id(record)
-                record["model_key"] = model_key
-                record["paraphrase_idx"] = variant.paraphrase_idx
-                if generation_store.append(record):
-                    annotation_store.append(make_annotation_template(record))
-                    written += 1
-    print(f"run_id={run_id} written={written} skipped={skipped} store={generation_store.path}")
+                    client = clients.setdefault(model_key, build_client(str(model_cfg["provider"]), model_cfg))
+                    # CD condition always requires reasoning trace
+                    capture_trace = bool(model_cfg.get("capture_reasoning_trace", False)) or variant.condition == "CD"
+                    try:
+                        result = client.generate(
+                            variant.base_text,
+                            max_tokens=int(model_cfg.get("token_budget", 1024)),
+                            temperature=float(model_cfg.get("temperature", 0.2)),
+                            capture_reasoning_trace=capture_trace,
+                        )
+                    except Exception as e:
+                        print(f"  FAILED: {model_key} | hash={variant.prompt_hash[:16]}... | sample={sample_idx} | error={e}")
+                        record = {
+                            "prompt_hash": variant.prompt_hash,
+                            "model": model_name,
+                            "response": "",
+                            "reasoning_trace": None,
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "run_id": run_id,
+                            "sample_idx": sample_idx,
+                            "failure_reason": str(e),
+                        }
+                        record["generation_id"] = generation_id(record)
+                        record["model_key"] = model_key
+                        record["paraphrase_idx"] = variant.paraphrase_idx
+                        record["condition"] = variant.condition
+                        record["slot_T"] = variant.slot_T
+                        record["slot_L"] = variant.slot_L
+                        record["slot_V"] = variant.slot_V
+                        record["slot_F"] = variant.slot_F
+                        if generation_store.append(record):
+                            annotation_store.append(make_annotation_template(record))
+                            failed += 1
+                        continue
+
+                    generation = Generation(
+                        prompt_hash=variant.prompt_hash,
+                        model=model_name,
+                        response=result.text,
+                        reasoning_trace=result.reasoning_trace,
+                        run_id=run_id,
+                        sample_idx=sample_idx,
+                    )
+                    record = generation.model_dump(mode="json")
+                    record["generation_id"] = generation_id(record)
+                    record["model_key"] = model_key
+                    record["paraphrase_idx"] = variant.paraphrase_idx
+                    record["condition"] = variant.condition
+                    record["slot_T"] = variant.slot_T
+                    record["slot_L"] = variant.slot_L
+                    record["slot_V"] = variant.slot_V
+                    record["slot_F"] = variant.slot_F
+                    if generation_store.append(record):
+                        annotation_store.append(make_annotation_template(record))
+                        written += 1
+                        total_input_tokens += estimate_tokens(variant.base_text)
+                        total_output_tokens += estimate_tokens(result.text or "")
+                        if result.reasoning_trace:
+                            total_output_tokens += estimate_tokens(result.reasoning_trace)
+    print(f"run_id={run_id} written={written} skipped={skipped} failed={failed} store={generation_store.path}")
+    est_cost = (total_input_tokens + total_output_tokens) / 1000 * 0.0015  # rough deepseek-reasoner cost
+    print(f"estimated_tokens={total_input_tokens + total_output_tokens} est_cost_usd=${est_cost:.2f}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -88,6 +137,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", default="config/pilot.yaml", help="Pilot config YAML path.")
     parser.add_argument("--models", default="", help="Comma-separated model keys from config/models.yaml.")
     parser.add_argument("--conditions", default="", help="Comma-separated conditions or slot composites.")
+    parser.add_argument("--prompts", default="", help="Override pilot JSONL path.")
     parser.add_argument("--dry-run", action="store_true", help="Print call counts and token estimates only.")
     parser.add_argument("--run-id", default="", help="Optional run id for outputs/runs/{run_id}.")
     return parser.parse_args()
@@ -134,12 +184,14 @@ def load_prompts_from_config(
     conditions: list[str],
     *,
     allow_missing: bool,
+    override_pilot_path: str = "",
 ) -> list[Prompt]:
     """Load prompts described by pilot config."""
     data_cfg = pilot_config.get("data", {})
+    pilot_path = override_pilot_path or data_cfg.get("pilot_path", "data/pilot/pilot_v1.jsonl")
     try:
         return build_prompts(
-            pilot_path=data_cfg.get("pilot_path", "data/pilot/pilot_v1.jsonl"),
+            pilot_path=pilot_path,
             metadata_paths=data_cfg.get("metadata_paths", {}),
             conditions=conditions,
             sample_per_cell=pilot_config.get("sample_per_cell"),
@@ -155,20 +207,22 @@ def print_dry_run(
     selected_models: dict[str, dict[str, Any]],
     pilot_config: dict[str, Any],
     n_paraphrases: int,
+    n_samples: int = 1,
 ) -> None:
     """Print counts and approximate token usage."""
     variants_per_item = max(1, n_paraphrases)
-    generation_calls = len(prompts) * len(selected_models) * variants_per_item
+    generation_calls = len(prompts) * len(selected_models) * variants_per_item * n_samples
     paraphrase_calls = len(prompts) if n_paraphrases > 0 else 0
     prompt_tokens = sum(estimate_tokens(prompt.base_text) for prompt in prompts)
     avg_prompt_tokens = math.ceil(prompt_tokens / len(prompts)) if prompts else 0
     output_tokens = sum(int(cfg.get("token_budget", 1024)) for cfg in selected_models.values())
-    generation_token_budget = len(prompts) * variants_per_item * (avg_prompt_tokens * len(selected_models) + output_tokens)
+    generation_token_budget = len(prompts) * variants_per_item * n_samples * (avg_prompt_tokens * len(selected_models) + output_tokens)
     paraphrase_cfg = pilot_config.get("paraphrase", {})
     paraphrase_token_budget = paraphrase_calls * (avg_prompt_tokens + int(paraphrase_cfg.get("max_tokens", 2048)))
     print(f"pilot_items={len(prompts)}")
     print(f"target_models={len(selected_models)}")
     print(f"paraphrases_per_item={variants_per_item}")
+    print(f"samples_per_prompt={n_samples}")
     print(f"paraphrase_api_calls={paraphrase_calls}")
     print(f"generation_api_calls={generation_calls}")
     print(f"estimated_token_budget={generation_token_budget + paraphrase_token_budget}")
@@ -249,6 +303,7 @@ def generation_id(record: dict[str, Any]) -> str:
             "model": record["model"],
             "run_id": record["run_id"],
             "timestamp": record["timestamp"],
+            "sample_idx": record.get("sample_idx", 0),
         }
     )
 

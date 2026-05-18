@@ -98,13 +98,18 @@ def assemble_prompt_text(record: Mapping[str, Any], metadata: Mapping[str, Mappi
 def _prompt_from_record(record: Mapping[str, Any], metadata: Mapping[str, Mapping[str, Any]]) -> Prompt:
     """Convert one pilot row into a hashed prompt."""
     slots = _extract_slots(record)
+    condition = str(record.get("condition", "D")).strip()
+    if condition not in ("D", "LC", "CD"):
+        condition = "D"
+    paraphrase_idx = int(record.get("paraphrase_idx", 0))
     return Prompt.from_text(
         slot_T=slots["slot_T"],
         slot_L=slots["slot_L"],
         slot_V=slots["slot_V"],
         slot_F=slots["slot_F"],
         base_text=assemble_prompt_text(record, metadata),
-        paraphrase_idx=0,
+        paraphrase_idx=paraphrase_idx,
+        condition=condition,
     )
 
 

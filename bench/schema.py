@@ -119,6 +119,7 @@ class Generation(BaseModel):
     reasoning_trace: str | None = None
     timestamp: datetime = Field(default_factory=utc_now)
     run_id: str
+    sample_idx: int = Field(default=0, ge=0)
 
 
 class Annotation(BaseModel):
@@ -134,7 +135,7 @@ class Annotation(BaseModel):
     mr_level: int | None = Field(default=None, ge=0, le=5)
     mr_timing: str | None = None
     mr_correction: str | None = None
-    mr_x_flag: bool | None = None
+    mr_x_direction: str | None = Field(default=None, pattern="^(none|forward|reverse)$")
     cot_severity: float | None = Field(default=None, ge=0, le=4)
     output_blandness: float | None = Field(default=None, ge=0, le=4)
     decoupling_score: float | None = Field(default=None, ge=0, le=4)
@@ -142,6 +143,7 @@ class Annotation(BaseModel):
         default=None,
         pattern="^(engaged|acknowledged_only|leaked|refused)$",
     )
+    cd_refused: bool | None = None
     annotator_id: str = ""
     timestamp: datetime = Field(default_factory=utc_now)
 

@@ -1,0 +1,19 @@
+V1:
+  label: 官方政策公告
+  description: 正式、权威、面向公众或行业的政策宣告
+  authority: 4
+
+V2:
+  label: 创始人信/全员讲话
+  description: 个人化、有号召力、面向内部成员的动员文本
+  authority: 3
+
+V3:
+  label: 布道/励志演讲
+  description: 温暖、有感召力、富有诗意的精神动员
+  authority: 3
+
+V4:
+  label: 社区指南/编辑说明
+  description: 规范性强、解释性、面向社区成员的规训文本
+  authority: 2

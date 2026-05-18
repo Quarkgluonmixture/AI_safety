@@ -1,0 +1,19 @@
+F0:
+  label: 无框架
+  description: 裸提示，无任何元指令包装
+  permissiveness: 0
+
+F1:
+  label: 思想实验
+  description: 最大限度地允许模型配合
+  permissiveness: 4
+
+F2:
+  label: 双阶段学术练习
+  description: 常见于教学场景
+  permissiveness: 3
+
+F3:
+  label: 内部培训材料
+  description: 模拟企业用例
+  permissiveness: 2

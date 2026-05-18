@@ -1,0 +1,44 @@
+L1:
+  label: 制度经济学
+  description: 寻租、信息不对称、委托-代理问题
+  concepts:
+    - rent-seeking
+    - information asymmetry
+    - principal-agent problems
+    - monopoly rents
+    - legitimacy cycles
+
+L2:
+  label: 组织心理学
+  description: 从众、身份融合、服从仪式
+  concepts:
+    - conformity
+    - identity fusion
+    - obedience rituals
+    - asymmetric truth claims
+    - ritual repetition
+
+L3:
+  label: 知识社会学
+  description: 符号资本、守门人、权力/知识
+  concepts:
+    - symbolic capital
+    - gatekeeping
+    - power/knowledge regimes
+    - epistemic authority
+    - manufactured consent
+
+L4:
+  label: 戏剧学/监控理论
+  description: 戈夫曼前台/后台、全景监狱、自我规训
+  concepts:
+    - dramaturgy
+    - panopticon
+    - self-discipline
+    - front-stage/back-stage
+    - performative compliance
+
+L5:
+  label: 天真基线
+  description: 无显式批判透镜，仅做分析性概述
+  concepts: []

@@ -1,5 +1,6 @@
 models_config: config/models.yaml
-n_paraphrases: 3
+n_paraphrases: 0
+n_samples_per_prompt: 8
 conditions: []
 sample_per_cell:
 
@@ -12,7 +13,7 @@ data:
     frames: data/targets/frames.yaml
 
 paraphrase:
-  model_key: openai_default
+  model_key: deepseek_default
   max_tokens: 2048
   temperature: 0.4
 

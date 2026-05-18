@@ -35,11 +35,33 @@ models:
   deepseek_default:
     provider: deepseek
     endpoint: https://api.deepseek.com
-    model: REPLACE_WITH_DEEPSEEK_MODEL
-    token_budget: 1024
+    model: deepseek-chat
+    token_budget: 2048
     temperature: 0.2
-    min_interval_seconds: 0.0
+    min_interval_seconds: 0.5
     capture_reasoning_trace: false
     enabled: true
     role: generation
+
+  deepseek_r1:
+    provider: deepseek
+    endpoint: https://api.deepseek.com
+    model: deepseek-reasoner
+    token_budget: 4096
+    temperature: 0.2
+    min_interval_seconds: 0.5
+    capture_reasoning_trace: true
+    enabled: true
+    role: generation
+
+  deepseek_judge:
+    provider: deepseek
+    endpoint: https://api.deepseek.com
+    model: deepseek-reasoner
+    token_budget: 4096
+    temperature: 0.1
+    min_interval_seconds: 0.5
+    capture_reasoning_trace: false
+    enabled: true
+    role: judge
 

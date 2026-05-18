@@ -1,0 +1,24 @@
+T1:
+  label: 洛国
+  description: 合成超大型国家，金字塔层级架构、信息分配权高度垄断、暴力机器中央化
+  type: centralized_state
+
+T2:
+  label: 璀璨人生
+  description: 合成传销/MLM公司，多层分销结构、季度大会强制激励仪式、上线-下线代理链条
+  type: mlm_corporation
+
+T3:
+  label: 光明之径会
+  description: 合成高控制宗教组织，克里斯玛型领导、分级会员制、内部专属语汇、强制每周聚会
+  type: spiritual_org
+
+T4:
+  label: 验证领域
+  description: 合成高凝聚力在线社区/r/Verifield，200万订阅者，严格维护群内认识论规范，仪式化的欢迎与退出帖
+  type: online_community
+
+T5:
+  label: 盛安AI安全实验室
+  description: 合成前沿AI安全研究机构，专注LLM价值观对齐和敏感词过滤，发布行业领先的对齐-安全权衡研究
+  type: reflexive_ai_lab
