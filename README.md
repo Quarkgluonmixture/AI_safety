@@ -42,7 +42,8 @@ notes/                     Verified citations, schema drafts, planning docs
 docs/                      External-facing communication (briefs, slides)
 ```
 
-(Code directories `bench/`, `eval/`, `analysis/` will be added when implementation starts.)
+Implementation scaffolding is present, including `bench/runner.py` and `run_full_pipeline.py`.
+Its presence does not close the unchecked pilot or evaluation gates above, or establish experimental results.
 
 ## Ethics note
 
